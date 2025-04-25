@@ -74,7 +74,6 @@ h2 {
 }
 
 .subtitle {
-    color: var(--color-teal);
     font-size: 1.1rem;
 }
 
@@ -178,7 +177,6 @@ button:disabled {
 }
 
 .error-message {
-    color: var(--color-orange);
     font-size: 0.875rem;
     margin-top: 0.25rem;
     display: block;
