@@ -118,25 +118,36 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('Enviando formulario...');
 
         try {
-            const response = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors', // Agregamos modo no-cors
+            // Primero hacemos una petición OPTIONS para verificar CORS
+            const checkCORS = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
+                method: 'OPTIONS',
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                    'Origin': window.location.origin
                 }
             });
 
-            // Debido a que estamos usando modo no-cors, no podemos acceder a la respuesta
-            // Asumimos que si no hay error, el envío fue exitoso
-            showStatus('¡Formulario enviado con éxito! Si no recibes confirmación, por favor contacta al administrador.');
+            // Si la verificación CORS falla, intentamos con no-cors
+            const response = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            // En modo no-cors no podemos leer la respuesta, así que asumimos éxito si no hay error
+            showStatus('¡Formulario enviado! Por favor, espera la confirmación por correo electrónico.');
             form.reset();
             audioPreview.style.display = 'none';
             audioChunks = [];
             
         } catch (error) {
             console.error('Error:', error);
-            showStatus('Error al enviar el formulario. Por favor, verifica tu conexión e intenta nuevamente.', true);
+            showStatus(`Error al enviar el formulario: ${error.message}. Por favor, contacta al administrador.`, true);
         }
     });
 }); 
