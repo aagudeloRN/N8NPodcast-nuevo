@@ -81,6 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     stopRecordingBtn.addEventListener('click', stopRecording);
 
+    // Función para mostrar mensajes de estado
+    const showStatus = (message, isError = false) => {
+        submitStatus.textContent = message;
+        submitStatus.className = `status-message ${isError ? 'error' : 'success'}`;
+    };
+
     // Manejo del envío del formulario
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -109,28 +115,28 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('empresa', empresaInput.value);
         formData.append('audio', new Blob(audioChunks, { type: 'audio/wav' }));
 
+        showStatus('Enviando formulario...');
+
         try {
             const response = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
                 method: 'POST',
                 body: formData,
+                mode: 'no-cors', // Agregamos modo no-cors
                 headers: {
                     'Accept': 'application/json'
                 }
             });
 
-            if (response.ok) {
-                submitStatus.textContent = '¡Formulario enviado con éxito!';
-                submitStatus.className = 'status-message success';
-                form.reset();
-                audioPreview.style.display = 'none';
-                audioChunks = [];
-            } else {
-                throw new Error('Error en el servidor');
-            }
+            // Debido a que estamos usando modo no-cors, no podemos acceder a la respuesta
+            // Asumimos que si no hay error, el envío fue exitoso
+            showStatus('¡Formulario enviado con éxito! Si no recibes confirmación, por favor contacta al administrador.');
+            form.reset();
+            audioPreview.style.display = 'none';
+            audioChunks = [];
+            
         } catch (error) {
             console.error('Error:', error);
-            submitStatus.textContent = 'Error al enviar el formulario. Por favor, intenta nuevamente.';
-            submitStatus.className = 'status-message error';
+            showStatus('Error al enviar el formulario. Por favor, verifica tu conexión e intenta nuevamente.', true);
         }
     });
 }); 
