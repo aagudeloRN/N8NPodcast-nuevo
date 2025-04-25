@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timerDisplay');
     const submitStatus = document.getElementById('submitStatus');
 
+    // URL del webhook con proxy CORS
+    const WEBHOOK_URL = 'https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295';
+    const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+
     let mediaRecorder;
     let audioChunks = [];
     let timerInterval;
@@ -87,6 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
         submitStatus.className = `status-message ${isError ? 'error' : 'success'}`;
     };
 
+    // Función para convertir Blob a Base64
+    const blobToBase64 = (blob) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
+
     // Manejo del envío del formulario
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -109,45 +123,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Preparar datos para enviar
-        const formData = new FormData();
-        formData.append('email', emailInput.value);
-        formData.append('empresa', empresaInput.value);
-        formData.append('audio', new Blob(audioChunks, { type: 'audio/wav' }));
-
-        showStatus('Enviando formulario...');
+        showStatus('Preparando el envío...');
 
         try {
-            // Primero hacemos una petición OPTIONS para verificar CORS
-            const checkCORS = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
-                method: 'OPTIONS',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data',
-                    'Origin': window.location.origin
-                }
-            });
+            // Convertir el audio a base64
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioBase64 = await blobToBase64(audioBlob);
 
-            // Si la verificación CORS falla, intentamos con no-cors
-            const response = await fetch('https://purely-able-marmot.ngrok-free.app/webhook/441261da-69c3-4c27-8f7c-b5ea347c8295', {
+            // Preparar los datos en formato JSON
+            const data = {
+                email: emailInput.value,
+                empresa: empresaInput.value.toUpperCase(),
+                audio: audioBase64
+            };
+
+            showStatus('Enviando formulario...');
+
+            const response = await fetch(CORS_PROXY + WEBHOOK_URL, {
                 method: 'POST',
-                body: formData,
-                mode: 'no-cors',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data'
-                }
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
             });
 
-            // En modo no-cors no podemos leer la respuesta, así que asumimos éxito si no hay error
-            showStatus('¡Formulario enviado! Por favor, espera la confirmación por correo electrónico.');
-            form.reset();
-            audioPreview.style.display = 'none';
-            audioChunks = [];
-            
+            if (response.ok) {
+                showStatus('¡Formulario enviado con éxito!');
+                form.reset();
+                audioPreview.style.display = 'none';
+                audioChunks = [];
+            } else {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
         } catch (error) {
             console.error('Error:', error);
-            showStatus(`Error al enviar el formulario: ${error.message}. Por favor, contacta al administrador.`, true);
+            showStatus(`Error al enviar el formulario: ${error.message}. Por favor, intenta nuevamente.`, true);
         }
     });
 }); 
