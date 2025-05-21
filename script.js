@@ -54,8 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const audioUrl = URL.createObjectURL(audioBlob);
+                const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                const audioBlob = new Blob(audioChunks, { type: mimeType });
+                const audioUrl  = URL.createObjectURL(audioBlob);
                 audioPreview.src = audioUrl;
                 audioPreview.style.display = 'block';
             };
@@ -137,13 +138,21 @@ document.addEventListener('DOMContentLoaded', () => {
             //    audio: audioBase64
             //};
 
+            // 1. Detectamos el MIME real que entregó el recorder
+            const mimeType  = mediaRecorder.mimeType || 'audio/webm';
+            const extension = mimeType.split('/')[1];
+            // 2. Creamos el Blob con ese tipo
+            const audioBlob = new Blob(audioChunks, { type: mimeType });
+            // 3. Lo añadimos al FormData con la extensión correcta
+            formData.append('audio', audioBlob, `pitch.${extension}`);
+
             const email = emailInput.value;
             const empresa = empresaInput.value.toUpperCase();
             //const audioBlob = audioBase64;
             const formData = new FormData();
             formData.append('email', email);
             formData.append('empresa', empresa);
-            formData.append('audio', audioBlob, 'pitch.webm');
+            //formData.append('audio', audioBlob, 'pitch.webm');
             
             showStatus('Enviando formulario...');
 
