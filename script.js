@@ -15,10 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval;
     let startTime;
 
-    // Convertir empresa a mayúsculas mientras escribe
-    empresaInput.addEventListener('input', e => {
-        e.target.value = e.target.value.toUpperCase();
-    });
+    // Empresa en mayúsculas
+    empresaInput.addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
 
     // Validación de email
     const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -45,9 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             mediaRecorder.onstop = () => {
                 const mimeType = mediaRecorder.mimeType || 'audio/webm';
-                const audioBlob = new Blob(audioChunks, { type: mimeType });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                audioPreview.src = audioUrl;
+                const blob = new Blob(audioChunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                audioPreview.src = url;
                 audioPreview.style.display = 'block';
             };
 
@@ -63,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Detener grabación
     const stopRecording = () => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
@@ -84,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Envío del formulario
     form.addEventListener('submit', async e => {
         e.preventDefault();
-        // Limpiar errores
+        // Limpiar errores previos
         document.getElementById('emailError').textContent = '';
         document.getElementById('empresaError').textContent = '';
         document.getElementById('audioError').textContent = '';
