@@ -141,11 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
+                mode: 'cors',
                 body: JSON.stringify(data)
             });
 
