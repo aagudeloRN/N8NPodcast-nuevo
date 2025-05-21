@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitStatus = document.getElementById('submitStatus');
 
     // URL del webhook con proxy CORS
-    const WEBHOOK_URL = 'https://aagudelo.app.n8n.cloud/webhook/formulario';
+    const WEBHOOK_URL = 'https://aagudelo.app.n8n.cloud/webhook-test/formulario';
     //const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
     let mediaRecorder;
