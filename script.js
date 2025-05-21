@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const audioUrl = URL.createObjectURL(audioBlob);
                 audioPreview.src = audioUrl;
                 audioPreview.style.display = 'block';
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('email', email);
             formData.append('empresa', empresa);
-            formData.append('audio', audioBlob, 'pitch.webm');
+            formData.append('audio', audioBlob, 'pitch.wav');
             
             showStatus('Enviando formulario...');
 
