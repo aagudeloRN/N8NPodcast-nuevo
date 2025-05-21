@@ -131,17 +131,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioBase64 = await blobToBase64(audioBlob);
 
             // Preparar los datos en formato JSON
-            const data = {
-                email: emailInput.value,
-                empresa: empresaInput.value.toUpperCase(),
-                audio: audioBase64
-            };
+            //const data = {
+            //    email: emailInput.value,
+            //    empresa: empresaInput.value.toUpperCase(),
+            //    audio: audioBase64
+            //};
+
+            const email = emailInput.value;
+            const empresa = empresaInput.value.toUpperCase();
+            const audioBlob = audioBase64;
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('empresa', empresa);
+            formData.append('audio', audioBlob, 'pitch.webm');
 
             showStatus('Enviando formulario...');
 
             const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (response.ok) {
