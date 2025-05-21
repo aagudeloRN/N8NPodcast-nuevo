@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // URL del webhook con proxy CORS
     const WEBHOOK_URL = 'https://aagudelo.app.n8n.cloud/webhook/formulario';
-    const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+    //const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
     let mediaRecorder;
     let audioChunks = [];
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showStatus('Enviando formulario...');
 
-            const response = await fetch(CORS_PROXY + WEBHOOK_URL, {
+            const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
