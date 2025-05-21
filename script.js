@@ -8,38 +8,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timerDisplay');
     const submitStatus = document.getElementById('submitStatus');
 
-    // URL del webhook con proxy CORS
     const WEBHOOK_URL = 'https://aagudelo.app.n8n.cloud/webhook-test/formulario';
-    //const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
     let mediaRecorder;
     let audioChunks = [];
     let timerInterval;
     let startTime;
 
-    // Convertir empresa a mayúsculas mientras se escribe
-    empresaInput.addEventListener('input', (e) => {
+    // Convertir empresa a mayúsculas mientras escribe
+    empresaInput.addEventListener('input', e => {
         e.target.value = e.target.value.toUpperCase();
     });
 
     // Validación de email
-    const validateEmail = (email) => {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    };
+    const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    // Función para actualizar el timer
+    // Actualizar timer
     const updateTimer = () => {
-        const currentTime = new Date().getTime();
-        const elapsedTime = new Date(currentTime - startTime);
-        const minutes = elapsedTime.getMinutes().toString().padStart(2, '0');
-        const seconds = elapsedTime.getSeconds().toString().padStart(2, '0');
+        const elapsed = Date.now() - startTime;
+        const minutes = String(Math.floor(elapsed / 60000)).padStart(2, '0');
+        const seconds = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0');
         timerDisplay.textContent = `${minutes}:${seconds}`;
-
-        // Detener la grabación después de 2 minutos
-        if (minutes === '02') {
-            stopRecording();
-        }
+        if (minutes === '02') stopRecording();
     };
 
     // Iniciar grabación
@@ -49,27 +39,27 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) audioChunks.push(event.data);
             };
 
             mediaRecorder.onstop = () => {
                 const mimeType = mediaRecorder.mimeType || 'audio/webm';
                 const audioBlob = new Blob(audioChunks, { type: mimeType });
-                const audioUrl  = URL.createObjectURL(audioBlob);
+                const audioUrl = URL.createObjectURL(audioBlob);
                 audioPreview.src = audioUrl;
                 audioPreview.style.display = 'block';
             };
 
             mediaRecorder.start();
-            startTime = new Date().getTime();
+            startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
-            
+
             startRecordingBtn.disabled = true;
             stopRecordingBtn.disabled = false;
         } catch (error) {
-            console.error('Error accessing microphone:', error);
-            document.getElementById('audioError').textContent = 'Error al acceder al micrófono. Por favor, asegúrate de dar los permisos necesarios.';
+            console.error('Error al acceder al micrófono:', error);
+            document.getElementById('audioError').textContent = 'No se pudo acceder al micrófono.';
         }
     });
 
@@ -83,83 +73,50 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder.stream.getTracks().forEach(track => track.stop());
         }
     };
-
     stopRecordingBtn.addEventListener('click', stopRecording);
 
-    // Función para mostrar mensajes de estado
+    // Mostrar estado
     const showStatus = (message, isError = false) => {
         submitStatus.textContent = message;
         submitStatus.className = `status-message ${isError ? 'error' : 'success'}`;
     };
 
-    // Función para convertir Blob a Base64
-    const blobToBase64 = (blob) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    };
-
-    // Manejo del envío del formulario
-    form.addEventListener('submit', async (e) => {
+    // Envío del formulario
+    form.addEventListener('submit', async e => {
         e.preventDefault();
+        // Limpiar errores
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('empresaError').textContent = '';
+        document.getElementById('audioError').textContent = '';
 
-        // Validar email
+        // Validaciones
         if (!validateEmail(emailInput.value)) {
-            document.getElementById('emailError').textContent = 'Por favor, ingresa un correo electrónico válido';
+            document.getElementById('emailError').textContent = 'Ingresa un correo válido';
             return;
         }
-
-        // Validar empresa
         if (!empresaInput.value.trim()) {
-            document.getElementById('empresaError').textContent = 'Por favor, ingresa el nombre de la empresa';
+            document.getElementById('empresaError').textContent = 'Ingresa el nombre de la empresa';
             return;
         }
-
-        // Validar audio
         if (audioChunks.length === 0) {
-            document.getElementById('audioError').textContent = 'Por favor, graba un audio antes de enviar el formulario';
+            document.getElementById('audioError').textContent = 'Graba un audio antes de enviar';
             return;
         }
 
-        showStatus('Preparando el envío...');
+        showStatus('Preparando envío...');
 
         try {
-            // Convertir el audio a base64
-            //const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            //const audioBase64 = await blobToBase64(audioBlob);
+            const formData = new FormData();
+            formData.append('email', emailInput.value);
+            formData.append('empresa', empresaInput.value.toUpperCase());
 
-            // Preparar los datos en formato JSON
-            //const data = {
-            //    email: emailInput.value,
-            //    empresa: empresaInput.value.toUpperCase(),
-            //    audio: audioBase64
-            //};
-
-            // 1. Detectamos el MIME real que entregó el recorder
-            const mimeType  = mediaRecorder.mimeType || 'audio/webm';
+            const mimeType = mediaRecorder.mimeType || 'audio/webm';
             const extension = mimeType.split('/')[1];
-            // 2. Creamos el Blob con ese tipo
             const audioBlob = new Blob(audioChunks, { type: mimeType });
-            // 3. Lo añadimos al FormData con la extensión correcta
             formData.append('audio', audioBlob, `pitch.${extension}`);
 
-            const email = emailInput.value;
-            const empresa = empresaInput.value.toUpperCase();
-            //const audioBlob = audioBase64;
-            const formData = new FormData();
-            formData.append('email', email);
-            formData.append('empresa', empresa);
-            //formData.append('audio', audioBlob, 'pitch.webm');
-            
             showStatus('Enviando formulario...');
-
-            const response = await fetch(WEBHOOK_URL, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(WEBHOOK_URL, { method: 'POST', body: formData });
 
             if (response.ok) {
                 showStatus('¡Formulario enviado con éxito!');
@@ -167,11 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 audioPreview.style.display = 'none';
                 audioChunks = [];
             } else {
-                throw new Error(`Error del servidor: ${response.status}`);
+                throw new Error(`Servidor respondió ${response.status}`);
             }
         } catch (error) {
-            console.error('Error:', error);
-            showStatus(`Error al enviar el formulario: ${error.message}. Por favor, intenta nuevamente.`, true);
+            console.error('Error al enviar:', error);
+            showStatus(`Error al enviar: ${error.message}`, true);
         }
     });
-}); 
+});
