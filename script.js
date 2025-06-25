@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timerDisplay');
     const submitStatus = document.getElementById('submitStatus');
 
-    const WEBHOOK_URL = 'https://aagudelo.app.n8n.cloud/webhook-test/formulario';
+    const WEBHOOK_URL = 'https://127.0.0.1.nip.io/webhook-test/formulario';
+    //const WEBHOOK_URL = 'https://127.0.0.1.nip.io/webhook/formulario';
 
     let mediaRecorder;
     let audioChunks = [];
